@@ -1,7 +1,13 @@
-# Define minimum pre-commit version for compatibility
-minimum_pre_commit_version: "4.2.0"
-
 repos:
+  - repo: local
+    hooks:
+      - id: update-requirements
+        name: Update requirements.txt from poetry.lock
+        entry: poetry export --without-hashes -f requirements.txt -o requirements.txt
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
     rev: v0.11.5

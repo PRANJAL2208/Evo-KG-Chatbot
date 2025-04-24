@@ -16,6 +16,9 @@ kani-utils = {git = "https://github.com/zakmii/evo-utils.git"}
 httpx = "^0.24.0"
 neo4j = "^5.20.0"
 
+[tool.poetry.dev-dependencies]
+pre-commit = "^2.20.0"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
