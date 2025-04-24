@@ -2,7 +2,7 @@
 
 An AI chatbot designed to answer queries about the EvoKG knowledge graph using OpenAI's GPT models and the Kani framework, served via Streamlit.
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://evokg.ahujalab.iiitd.edu.in/)
+[![EvoKG Chatbot](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://evokg.ahujalab.iiitd.edu.in/)
 
 ## Features
 
