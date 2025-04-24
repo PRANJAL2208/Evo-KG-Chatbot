@@ -1,6 +1,13 @@
 repos:
   - repo: local
     hooks:
+      - id: poetry-lock
+        name: Update poetry.lock
+        entry: poetry lock
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
       - id: update-requirements
         name: Update requirements.txt from poetry.lock
         entry: poetry export --without-hashes -f requirements.txt -o requirements.txt
