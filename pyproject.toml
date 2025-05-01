@@ -23,3 +23,12 @@ pre-commit = "^2.20.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+# Enable Pyflakes, pycodestyle error & warning, isort
+select = ["E", "F", "W", "I"]
+line-length = 88
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+target-version = "py311"
