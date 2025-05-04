@@ -9,13 +9,14 @@ package-mode = false
 
 [tool.poetry.dependencies]
 kani-utils = { path = "evo-utils", develop = true }
-python=">=3.11,<4.0"
-streamlit = "^1.26.0"
+python = ">=3.11,<4.0"
+streamlit = "^1.33.0"
 numpy = "1.26.4"
-python-dotenv = "^1.0.0"
+python-dotenv = "^1.0.1"
 httpx = "^0.24.0"
 neo4j = "^5.20.0"
-streamlit-authenticator = "^0.3.0"
+PyYAML = "^6.0.1"
+requests = "^2.31.0"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^2.20.0"
@@ -28,6 +29,8 @@ build-backend = "poetry.core.masonry.api"
 # Enable Pyflakes, pycodestyle error & warning, isort
 select = ["E", "F", "W", "I"]
 line-length = 88
+ignore = ["E501"] # Example: ignore line length errors if handled by formatter
+
 # Allow autofix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
 unfixable = []
