@@ -1,4 +1,5 @@
 .streamlit/secrets.toml
+config.yaml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -155,6 +156,9 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+#Password hashing
+hash_password.py
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
