@@ -6,6 +6,7 @@ from agents import EvoKgAgent
 import pathlib
 import logging
 import streamlit as st
+from gemini_engine import GeminiEngine 
 
 dotenv.load_dotenv()
 
@@ -128,8 +129,8 @@ ks.initialize_app_config(
 )
 
 # define an engine to use (see Kani documentation for more info)
-engine = OpenAIEngine(os.environ["OPENAI_API_KEY"], model="gpt-4o-mini")
-# mistralEngine = HuggingEngine(
+# engine = OpenAIEngine(os.environ["OPENAI_API_KEY"], model="gpt-4o-mini")
+gemini_engine = GeminiEngine()
 #     model_id="mistralai/Mistral-7B-Instruct-v0.3", token=os.environ["MISTRAL_TOKEN"]
 # )
 
@@ -138,10 +139,14 @@ engine = OpenAIEngine(os.environ["OPENAI_API_KEY"], model="gpt-4o-mini")
 # Agents are keyed by their name, which is what the user will see in the UI
 def get_agents():
     return {
-        "EvoLLM (4o-mini)": EvoKgAgent(
-            engine
-        ),  # prompt_tokens_cost = 0.005, completion_tokens_cost = 0.015),
+        # "EvoLLM (4o-mini)": EvoKgAgent(
+        #     engine
+        # ),  # prompt_tokens_cost = 0.005, completion_tokens_cost = 0.015),
         # "EvoLLM (Mistral)": EvoKgAgent(mistralEngine),
+        "EvoLLM (Gemini Pro)": EvoKgAgent(
+            gemini_engine
+        ),
+
     }
 
 
