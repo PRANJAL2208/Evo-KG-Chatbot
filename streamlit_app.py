@@ -348,8 +348,8 @@ elif st.session_state["logged_in"]:
 
     def get_agents():
         return {
-            "EvoLLM (4.1-nano)": EvoKgAgent(engine),
             "EvoLLM (4o-mini)": EvoKgAgent(engine2),
+            "EvoLLM (4.1-nano)": EvoKgAgent(engine),
         }
 
     ks.set_app_agents(get_agents)
