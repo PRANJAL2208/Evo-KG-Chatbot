@@ -343,11 +343,13 @@ elif st.session_state["logged_in"]:
             st.session_state["current_page"] = "intro"
             st.rerun()
 
-    engine = OpenAIEngine(os.environ["OPENAI_API_KEY"], model="gpt-4o-mini")
+    engine = OpenAIEngine(os.environ["OPENAI_API_KEY"], model="gpt-4.1-nano")
+    engine2 = OpenAIEngine(os.environ["OPENAI_API_KEY"], model="gpt-4o-mini")
 
     def get_agents():
         return {
-            "EvoLLM (4o-mini)": EvoKgAgent(engine),
+            "EvoLLM (4o-mini)": EvoKgAgent(engine2),
+            "EvoLLM (4.1-nano)": EvoKgAgent(engine),
         }
 
     ks.set_app_agents(get_agents)
