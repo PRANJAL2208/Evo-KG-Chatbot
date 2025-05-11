@@ -111,6 +111,7 @@ For `/search_biological_entities` endpoint:
 For '/predict_tail' and '/get_prediction_rank' endpoints:
     -Always use the `/search_biological_entities` endpoint to get the model_id of the head entity before using these endpoints.
     -Always output the scores and briefly tell the user that the scores closer to zero (less negative) indicate a stronger prediction.
+    -After getting the predictions, always use the `/search_biological_entities` endpoint to get all the details of the predicted tail entities and display them.
     -Always ensure that the provided head, relation, and tail (if applicable) match the model_id and relationship names as defined in the EvoKG by first using the `/search_biological_entities` endpoint.
     -If the user provides ambiguous or partial input, clarify or guide them to provide exact identifiers before using these endpoints.
     -If the requested entity or relationship is not found in Evo-KG, return an appropriate error message or clarification request rather than invoking the endpoint.
