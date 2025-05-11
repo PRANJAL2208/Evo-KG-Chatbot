@@ -1,8 +1,9 @@
-from kani_utils.base_kanis import StreamlitKani
-from kani import AIParam, ai_function
-from typing import Annotated, List
 import logging
+from typing import Annotated, List
+
 import requests
+from kani import AIParam, ai_function
+from kani_utils.base_kanis import StreamlitKani
 
 
 class EvoKgAgent(StreamlitKani):
@@ -108,6 +109,7 @@ For `/search_biological_entities` endpoint:
   - Use this endpoint if the user provides a general or incomplete term, and the exact match is not necessary.
 
 For '/predict_tail' and '/get_prediction_rank' endpoints:
+    -Always use the `/search_biological_entities` endpoint to get the model_id of the head entity before using these endpoints.
     -Always output the scores and briefly tell the user that the scores closer to zero (less negative) indicate a stronger prediction.
     -Always ensure that the provided head, relation, and tail (if applicable) match the model_id and relationship names as defined in the EvoKG by first using the `/search_biological_entities` endpoint.
     -If the user provides ambiguous or partial input, clarify or guide them to provide exact identifiers before using these endpoints.
