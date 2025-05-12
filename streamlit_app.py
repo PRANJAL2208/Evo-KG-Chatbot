@@ -1,3 +1,4 @@
+import datetime  # Added for query limit reset logic
 import json
 import logging
 import os
@@ -38,6 +39,53 @@ else:
 # Must be set in .env file or as environment variables
 # This is just a placeholder, replace with your actual API URL in production
 API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
+
+
+def get_user_details(token: str):
+    """Fetches user details from the FastAPI backend."""
+    url = f"{API_BASE_URL}/users/me"  # Assuming this endpoint exists
+    headers = {"Authorization": f"Bearer {token}"}
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return True, response.json()
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Failed to get user details: {e}")
+        error_message = "Failed to fetch user data."
+        if e.response is not None:
+            try:
+                error_detail = e.response.json().get("detail", str(e))
+                error_message = f"Failed to fetch user data: {error_detail}"
+            except json.JSONDecodeError:
+                error_message = f"Failed to fetch user data: {e.response.status_code} - {e.response.reason}"
+        return False, {"error": error_message}
+    except Exception as e:
+        logger.error(f"An unexpected error occurred while fetching user details: {e}")
+        return False, {"error": "An unexpected error occurred."}
+
+
+def update_user_query_limits(token: str, query_limits: int, last_query_reset: str):
+    """Updates user query limits on the FastAPI backend."""
+    url = f"{API_BASE_URL}/users/me/query_limits"  # Assuming this endpoint exists
+    headers = {"Authorization": f"Bearer {token}"}
+    payload = {"query_limits": query_limits, "last_query_reset": last_query_reset}
+    try:
+        response = requests.put(url, headers=headers, json=payload)
+        response.raise_for_status()
+        return True, response.json()
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Failed to update query limits: {e}")
+        error_message = "Failed to update query limits."
+        if e.response is not None:
+            try:
+                error_detail = e.response.json().get("detail", str(e))
+                error_message = f"Failed to update query limits: {error_detail}"
+            except json.JSONDecodeError:
+                error_message = f"Failed to update query limits: {e.response.status_code} - {e.response.reason}"
+        return False, {"error": error_message}
+    except Exception as e:
+        logger.error(f"An unexpected error occurred while updating query limits: {e}")
+        return False, {"error": "An unexpected error occurred."}
 
 
 def register_user(username, email, password):
@@ -82,6 +130,24 @@ def login_user(username, password):
         data = response.json()
         # Expecting {'access_token': '...', 'token_type': 'bearer'}
         if "access_token" in data:
+            # Fetch user details after successful login
+            fetch_success, user_details = get_user_details(data["access_token"])
+            if fetch_success:
+                st.session_state["query_limits"] = user_details.get("query_limits", 10)
+                st.session_state["last_query_reset"] = user_details.get(
+                    "last_query_reset", datetime.datetime.utcnow().isoformat()
+                )
+            else:
+                # Handle error or set defaults if fetch fails
+                st.session_state["query_limits"] = 10
+                st.session_state["last_query_reset"] = (
+                    datetime.datetime.utcnow().isoformat()
+                )
+                st.warning(
+                    user_details.get(
+                        "error", "Could not fetch user query limits, using defaults."
+                    )
+                )
             return True, data
         else:
             return False, {"error": "Login successful, but no token received."}
@@ -238,6 +304,10 @@ if "username" not in st.session_state:
     st.session_state["username"] = None
 if "auth_view" not in st.session_state:
     st.session_state["auth_view"] = "Login"
+if "query_limits" not in st.session_state:  # Ensure query_limits is initialized
+    st.session_state["query_limits"] = 10
+if "last_query_reset" not in st.session_state:
+    st.session_state["last_query_reset"] = datetime.datetime.utcnow().isoformat()
 
 if not st.session_state["logged_in"]:
     col1, col2, col3 = st.columns([0.5, 2, 0.5])
@@ -317,6 +387,9 @@ if not st.session_state["logged_in"]:
     st.stop()
 
 elif st.session_state["logged_in"]:
+    # Store the function in session_state so kani_streamlit_server.py can access it
+    st.session_state.update_user_query_limits_func = update_user_query_limits
+
     ks.initialize_app_config(
         show_function_calls=False,
         page_title="EvoLLM",
