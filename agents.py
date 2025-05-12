@@ -1,8 +1,17 @@
-from kani_utils.base_kanis import StreamlitKani
-from kani import AIParam, ai_function
-from typing import Annotated, List
 import logging
+import os
+from typing import Annotated, List
+
 import requests
+from dotenv import load_dotenv
+from kani import AIParam, ai_function
+from kani_utils.base_kanis import StreamlitKani
+
+# Load environment variables from .env file
+load_dotenv()
+API_BASE_URL = os.getenv(
+    "API_BASE_URL", "http://localhost:8000"
+)  # Default to localhost if not set
 
 
 class EvoKgAgent(StreamlitKani):
@@ -146,7 +155,7 @@ Interaction: Keep responses concise and offer summaries or options for large dat
         self.user_avatar = "👤"
         self.name = "EvoKG Assistant"
 
-        self.api_base = "http://192.168.24.13:1026"
+        self.api_base = API_BASE_URL
 
     # helper function to make API calls
     def api_call(self, endpoint, timeout=30, **kwargs):
