@@ -88,10 +88,17 @@ def update_user_query_limits(token: str, query_limits: int, last_query_reset: st
         return False, {"error": "An unexpected error occurred."}
 
 
-def register_user(username, email, password):
+def register_user(username, email, password, first_name, last_name, organization):
     """Sends signup request to the FastAPI backend."""
     url = f"{API_BASE_URL}/auth/signup"
-    payload = {"username": username, "email": email, "password": password}
+    payload = {
+        "username": username,
+        "email": email,
+        "password": password,
+        "first_name": first_name,
+        "last_name": last_name,
+        "organization": organization,
+    }
     response = None  # Initialize response to None
     try:
         response = requests.post(url, json=payload)
@@ -133,19 +140,27 @@ def login_user(username, password):
             # Fetch user details after successful login
             fetch_success, user_details = get_user_details(data["access_token"])
             if fetch_success:
+                # Store user profile fields
                 st.session_state["query_limits"] = user_details.get("query_limits", 10)
                 st.session_state["last_query_reset"] = user_details.get(
                     "last_query_reset", datetime.datetime.utcnow().isoformat()
                 )
+                st.session_state["first_name"] = user_details.get("first_name", "")
+                st.session_state["last_name"] = user_details.get("last_name", "")
+                st.session_state["organization"] = user_details.get("organization", "")
             else:
                 # Handle error or set defaults if fetch fails
                 st.session_state["query_limits"] = 10
                 st.session_state["last_query_reset"] = (
                     datetime.datetime.utcnow().isoformat()
                 )
+                # Defaults for profile fields
+                st.session_state["first_name"] = ""
+                st.session_state["last_name"] = ""
+                st.session_state["organization"] = ""
                 st.warning(
                     user_details.get(
-                        "error", "Could not fetch user query limits, using defaults."
+                        "error", "Could not fetch user data, using defaults."
                     )
                 )
             return True, data
@@ -365,14 +380,29 @@ if not st.session_state["logged_in"]:
                 signup_password = st.text_input(
                     "Password", type="password", key="signup_pass"
                 )
+                signup_first_name = st.text_input("First Name", key="signup_first")
+                signup_last_name = st.text_input("Last Name", key="signup_last")
+                signup_organization = st.text_input("Organization", key="signup_org")
                 signup_button = st.form_submit_button("Sign Up")
 
                 if signup_button:
-                    if not signup_username or not signup_email or not signup_password:
+                    if (
+                        not signup_username
+                        or not signup_email
+                        or not signup_password
+                        or not signup_first_name
+                        or not signup_last_name
+                        or not signup_organization
+                    ):
                         st.error("Please fill in all fields.")
                     else:
                         success, data = register_user(
-                            signup_username, signup_email, signup_password
+                            signup_username,
+                            signup_email,
+                            signup_password,
+                            signup_first_name,
+                            signup_last_name,
+                            signup_organization,
                         )
                         if success:
                             st.success("Registration successful! Please log in.")
