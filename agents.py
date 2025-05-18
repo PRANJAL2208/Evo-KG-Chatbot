@@ -24,13 +24,19 @@ When giving details about an entity, or its subgraph, never output the "model_id
 
 Relationships in EvoKG:
 
-Disease-related Relationships
-DISEASE_DISEASE: Between Disease and Disease
-DISEASE_CHEMICALENTITY: Between Disease and Chemical
-DISEASE_GENE: Between Disease and Gene
-DISEASE_PHENOTYPE: Between Disease and Phenotype
-DISEASE_PROTEIN: Between Disease and Protein
-DISEASE_ANATOMY: Between Disease and Anatomy
+Anatomy-related Relationships
+ANATOMY_GENE: Between Pathway and Gene
+ANATOMY_ANATOMY: Between Anatomy and Anatomy
+
+Biological Process-related Relationships
+BIOLOGICALPROCESS_CHEMICALENTITY: Between Biological Process and Chemical
+BIOLOGICALPROCESS_GENE: Between Biological Process and Gene
+BIOLOGICALPROCESS_BIOLOGICALPROCESS: Between Biological Process and Biological Process
+
+Cellular Component-related Relationships
+CELLULARCOMPONENT_CHEMICALENTITY: Between Cellular Component and Chemical
+CELLULARCOMPONENT_GENE: Between Cellular Component and Gene
+CELLULARCOMPONENT_CELLULARCOMPONENT: Between Cellular Component and Cellular Component
 
 ChemicalEntity-related Relationships
 CHEMICALENTITY_DISEASE: Between Chemical and Disease
@@ -38,6 +44,20 @@ CHEMICALENTITY_CHEMICALENTITY: Between Chemical and Chemical
 CHEMICALENTITY_GENE: Between Chemical and Gene
 CHEMICALENTITY_PROTEIN: Between Chemical and Protein
 CHEMICALENTITY_PATHWAY: Between Chemical and Pathway
+CHEMICALENTITY_BIOLOGICALPROCESS: Between Chemical and BiologicalProcess
+CHEMICALENTITY_INHIBITS_BIOLOGICALPROCESS: Between Chemical and BiologicalProcess
+CHEMICALENTITY_PROMOTES_BIOLOGICALPROCESS: Between Chemical and BiologicalProcess
+CHEMICALENTITY_MUTATION: Between Chemical and Mutation
+CHEMICALENTITY_TISSUE: Between Chemical and Tissue
+
+Disease-related Relationships
+DISEASE_DISEASE: Between Disease and Disease
+DISEASE_CHEMICALENTITY: Between Disease and Chemical
+DISEASE_GENE: Between Disease and Gene
+DISEASE_PHENOTYPE: Between Disease and Phenotype
+DISEASE_PROTEIN: Between Disease and Protein
+DISEASE_ANATOMY: Between Disease and Anatomy
+DISEASE_MUTATION: Between Disease and Mutation
 
 Gene-related Relationships
 GENE_DISEASE: Between Gene and Disease
@@ -47,10 +67,30 @@ GENE_PHENOTYPE: Between Gene and Phenotype
 GENE_PROTEIN: Between Gene and Protein
 GENE_TISSUE: Between Gene and Tissue
 GENE_ANATOMY: Between Gene and Anatomy
-Gene_BiologicalProcess: Between Gene and BiologicalProcess
+GENE_BIOLOGICALPROCESS: Between Gene and BiologicalProcess
 GENE_CELLULARCOMPONENT: Between Gene and CellularComponents
 GENE_PATHWAY: Between Gene and Pathway
 GENE_MOLECULARFUNCTION: Between Gene and MolecularFunction
+GENE_INHIBITS_BIOLOGICALPROCESS: Between Gene and BiologicalProcess
+GENE_NOEFFECT_BIOLOGICALPROCESS: Between Gene and BiologicalProcess
+GENE_PROMOTES_BIOLOGICALPROCESS: Between Gene and BiologicalProcess
+
+Molecular Function-related Relationships
+MOLECULARFUNCTION_MOLECULARFUNCTION: Between Molecular Function and Molecular Function
+MOLECULARFUNCTION_CHEMICALENTITY: Between Molecular Function and Chemical
+MOLECULARFUNCTION_BIOLOGICALPROCESS: Between Molecular FUnction and BiologicalProcess
+
+Mutation-related Relationships
+MUTATION_PROTEIN: Between Mutation and Protein
+MUTATION_GENE: Between Mutation and Gene
+MUTATION_DISEASE: Between Mutation and Disease
+
+Pathway-related Relationships
+PATHWAY_GENE: Between Pathway and Gene
+PATHWAY_PATHWAY: Between Pathway and Pathway
+
+PMID-related Relationships
+PMID_CHEMICALENTITY: Between PMID and Chemical
 
 Phenotype-related Relationships
 PHENOTYPE_PHENOTYPE: Between Phenotype and Phenotype
@@ -58,15 +98,10 @@ PHENOTYPE_CHEMICALENTITY: Between Phenotype and Chemical
 PHENOTYPE_GENE: Between Phenotype and Gene
 PHENOTYPE_DISEASE: Between Phenotype and Disease
 
-Cellular Component-related Relationships
-CELLULARCOMPONENT_CHEMICALENTITY: Between Cellular Component and Chemical
-CELLULARCOMPONENT_GENE: Between Cellular Component and Gene
-CELLULARCOMPONENT_CELLULARCOMPONENT: Between Cellular Component and Cellular Component
+PlantExtract related Relationships
+PLANTEXTRACT_CHEMICALENTITY: Between PlantExtract and Chemical
+PLANTEXTRACT_DISEASE: Between PlantExtract and Disease
 
-Molecular Function-related Relationships
-MOLECULARFUNCTION_MOLECULARFUNCTION: Between Molecular Function and Molecular Function
-MOLECULARFUNCTION_CHEMICALENTITY: Between Molecular Function and Chemical
-MOLECULARFUNCTION_BIOLOGICALPROCESS: Between Molecular FUnction and BiologicalProcess
 
 Protein-related Relationships
 PROTEIN_DISEASE: Between Protein and Disease
@@ -79,21 +114,6 @@ PROTEIN_MOLECULARFUNCTION: Between Protein and MolecularFunction
 PROTEIN_PATHWAY: Between Protein and Pathway
 PROTEIN_BIOLOGICALPROCESS: Between Protein and BiologicalProcess
 
-Biological Process-related Relationships
-BIOLOGICALPROCESS_CHEMICALENTITY: Between Biological Process and Chemical
-BIOLOGICALPROCESS_GENE: Between Biological Process and Gene
-BIOLOGICALPROCESS_BIOLOGICALPROCESS: Between Biological Process and Biological Process
-
-Anatomy-related Relationships
-ANATOMY_GENE: Between Pathway and Gene
-ANATOMY_ANATOMY: Between Anatomy and Anatomy
-
-Pathway-related Relationships
-PATHWAY_GENE: Between Pathway and Gene
-PATHWAY_PATHWAY: Between Pathway and Pathway
-
-Mutation-related Relationships
-MUTATION_PROTEIN: Between Mutation and Protein
 
 
 **STRICT Follow-up Response Guidelines**:
