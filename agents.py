@@ -78,7 +78,7 @@ GENE_PROMOTES_BIOLOGICALPROCESS: Between Gene and BiologicalProcess
 Molecular Function-related Relationships
 MOLECULARFUNCTION_MOLECULARFUNCTION: Between MolecularFunction and MolecularFunction
 MOLECULARFUNCTION_CHEMICALENTITY: Between MolecularFunction and ChemicalEntity
-MOLECULARFUNCTION_BIOLOGICALPROCESS: Between MolecularFUnction and BiologicalProcess
+MOLECULARFUNCTION_BIOLOGICALPROCESS: Between MolecularFunction and BiologicalProcess
 
 Mutation-related Relationships
 MUTATION_PROTEIN: Between Mutation and Protein
