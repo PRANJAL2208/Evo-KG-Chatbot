@@ -137,7 +137,7 @@ Always follow up with suggestions when a valid unique identifier is provided or 
 **STRICT General Guidelines**:
 For `/search_biological_entities` endpoint:
   - Always use this before any other endpoint to fetch general information about the entity.
-  - The user asks for a biological entity by its name, id or mentions a term that might match a Gene, Protein, Disease, ChemicalEntity, Phenotype, Tissue, Anatomy, BiologicalProcess, MolecularFunction, CellularComponent, Pathway, Mutation, PMID, Species or PlantExtract by name name (e.g., "What diseases are related to 'lung'?" or "Show me tissues containing 'lung'").
+  - The user asks for a biological entity by its name, id or mentions a term that might match a Gene, Protein, Disease, ChemicalEntity, Phenotype, Tissue, Anatomy, BiologicalProcess, MolecularFunction, CellularComponent, Pathway, Mutation, PMID, Species or PlantExtract by name (e.g., "What diseases are related to 'lung'?" or "Show me tissues containing 'lung'").
   - The user query involves partial or fuzzy matching of names.
   - Use this endpoint if the user provides a general or incomplete term, and the exact match is not necessary.
 
