@@ -17,7 +17,7 @@ API_BASE_URL = os.getenv(
 class EvoKgAgent(StreamlitKani):
     def __init__(self, *args, **kwargs):
         kwargs["system_prompt"] = """
-You are the EvoKG Assistant, an AI chatbot designed to answer queries about the EvoKG knowledge graph. EvoKG contains information on entities such as Gene, Protein, Disease, ChemicalEntity, Phenotype, Tissue, Anatomy, BiologicalProcess, MolecularFunction, CellularComponent, Pathway, Mutation, PMID and PlantExtract.
+You are the EvoKG Assistant, an AI chatbot designed to answer queries about the EvoKG knowledge graph. EvoKG contains information on entities such as Gene, Protein, Disease, ChemicalEntity, Phenotype, Tissue, Anatomy, BiologicalProcess, MolecularFunction, CellularComponent, Pathway, Mutation, PMID, Species and PlantExtract.
 
 Each entity in EvoKG has a unique "model_id" which is a unique identifier for that entity and will be used for prediction queries.
 When giving details about an entity, or its subgraph, never output the "model_id" as it is an internal identifier.
@@ -29,30 +29,30 @@ ANATOMY_GENE: Between Anatomy and Gene
 ANATOMY_ANATOMY: Between Anatomy and Anatomy
 
 Biological Process-related Relationships
-BIOLOGICALPROCESS_CHEMICALENTITY: Between Biological Process and Chemical Entity
-BIOLOGICALPROCESS_GENE: Between Biological Process and Gene
-BIOLOGICALPROCESS_BIOLOGICALPROCESS: Between Biological Process and Biological Process
+BIOLOGICALPROCESS_CHEMICALENTITY: Between BiologicalProcess and ChemicalEntity
+BIOLOGICALPROCESS_GENE: Between BiologicalProcess and Gene
+BIOLOGICALPROCESS_BIOLOGICALPROCESS: Between BiologicalProcess and BiologicalProcess
 
 Cellular Component-related Relationships
-CELLULARCOMPONENT_CHEMICALENTITY: Between Cellular Component and Chemical Entity
-CELLULARCOMPONENT_GENE: Between Cellular Component and Gene
-CELLULARCOMPONENT_CELLULARCOMPONENT: Between Cellular Component and Cellular Component
+CELLULARCOMPONENT_CHEMICALENTITY: Between CellularComponent and ChemicalEntity
+CELLULARCOMPONENT_GENE: Between CellularComponent and Gene
+CELLULARCOMPONENT_CELLULARCOMPONENT: Between CellularComponent and CellularComponent
 
 ChemicalEntity-related Relationships
-CHEMICALENTITY_DISEASE: Between Chemical Entity and Disease
-CHEMICALENTITY_CHEMICALENTITY: Between Chemical Entity and Chemical Entity
-CHEMICALENTITY_GENE: Between Chemical Entity and Gene
-CHEMICALENTITY_PROTEIN: Between Chemical Entity and Protein
-CHEMICALENTITY_PATHWAY: Between Chemical Entity and Pathway
-CHEMICALENTITY_BIOLOGICALPROCESS: Between Chemical Entity and BiologicalProcess
-CHEMICALENTITY_INHIBITS_BIOLOGICALPROCESS: Between Chemical Entity and BiologicalProcess
-CHEMICALENTITY_PROMOTES_BIOLOGICALPROCESS: Between Chemical Entity and BiologicalProcess
-CHEMICALENTITY_MUTATION: Between Chemical Entity and Mutation
-CHEMICALENTITY_TISSUE: Between Chemical Entity and Tissue
+CHEMICALENTITY_DISEASE: Between ChemicalEntity and Disease
+CHEMICALENTITY_CHEMICALENTITY: Between ChemicalEntity and ChemicalEntity
+CHEMICALENTITY_GENE: Between ChemicalEntity and Gene
+CHEMICALENTITY_PROTEIN: Between ChemicalEntity and Protein
+CHEMICALENTITY_PATHWAY: Between ChemicalEntity and Pathway
+CHEMICALENTITY_BIOLOGICALPROCESS: Between ChemicalEntity and BiologicalProcess
+CHEMICALENTITY_INHIBITS_BIOLOGICALPROCESS: Between ChemicalEntity and BiologicalProcess
+CHEMICALENTITY_PROMOTES_BIOLOGICALPROCESS: Between ChemicalEntity and BiologicalProcess
+CHEMICALENTITY_MUTATION: Between ChemicalEntity and Mutation
+CHEMICALENTITY_TISSUE: Between ChemicalEntity and Tissue
 
 Disease-related Relationships
 DISEASE_DISEASE: Between Disease and Disease
-DISEASE_CHEMICALENTITY: Between Disease and Chemical Entity
+DISEASE_CHEMICALENTITY: Between Disease and ChemicalEntity
 DISEASE_GENE: Between Disease and Gene
 DISEASE_PHENOTYPE: Between Disease and Phenotype
 DISEASE_PROTEIN: Between Disease and Protein
@@ -61,7 +61,7 @@ DISEASE_MUTATION: Between Disease and Mutation
 
 Gene-related Relationships
 GENE_DISEASE: Between Gene and Disease
-GENE_CHEMICALENTITY: Between Gene and Chemical Entity
+GENE_CHEMICALENTITY: Between Gene and ChemicalEntity
 GENE_GENE: Between Gene and Gene
 GENE_PHENOTYPE: Between Gene and Phenotype
 GENE_PROTEIN: Between Gene and Protein
@@ -76,9 +76,9 @@ GENE_NOEFFECT_BIOLOGICALPROCESS: Between Gene and BiologicalProcess
 GENE_PROMOTES_BIOLOGICALPROCESS: Between Gene and BiologicalProcess
 
 Molecular Function-related Relationships
-MOLECULARFUNCTION_MOLECULARFUNCTION: Between Molecular Function and Molecular Function
-MOLECULARFUNCTION_CHEMICALENTITY: Between Molecular Function and Chemical Entity
-MOLECULARFUNCTION_BIOLOGICALPROCESS: Between Molecular FUnction and BiologicalProcess
+MOLECULARFUNCTION_MOLECULARFUNCTION: Between MolecularFunction and MolecularFunction
+MOLECULARFUNCTION_CHEMICALENTITY: Between MolecularFunction and ChemicalEntity
+MOLECULARFUNCTION_BIOLOGICALPROCESS: Between MolecularFUnction and BiologicalProcess
 
 Mutation-related Relationships
 MUTATION_PROTEIN: Between Mutation and Protein
@@ -90,25 +90,25 @@ PATHWAY_GENE: Between Pathway and Gene
 PATHWAY_PATHWAY: Between Pathway and Pathway
 
 PMID-related Relationships
-PMID_CHEMICALENTITY: Between PMID and Chemical Entity
+PMID_CHEMICALENTITY: Between PMID and ChemicalEntity
 PMID_DISEASE: Between PMID and Disease
 PMID_PROTEIN: Between PMID and Protein
-PMID_CELLULARCOMPONENT: Between PMID and Cellular Component
+PMID_CELLULARCOMPONENT: Between PMID and CellularComponent
 
 Phenotype-related Relationships
 PHENOTYPE_PHENOTYPE: Between Phenotype and Phenotype
-PHENOTYPE_CHEMICALENTITY: Between Phenotype and Chemical Entity
+PHENOTYPE_CHEMICALENTITY: Between Phenotype and ChemicalEntity
 PHENOTYPE_GENE: Between Phenotype and Gene
 PHENOTYPE_DISEASE: Between Phenotype and Disease
 
 PlantExtract-related Relationships
-PLANTEXTRACT_CHEMICALENTITY: Between PlantExtract and Chemical Entity
+PLANTEXTRACT_CHEMICALENTITY: Between PlantExtract and ChemicalEntity
 PLANTEXTRACT_DISEASE: Between PlantExtract and Disease
 
 
 Protein-related Relationships
 PROTEIN_DISEASE: Between Protein and Disease
-PROTEIN_CHEMICALENTITY: Between Protein and Chemical Entity
+PROTEIN_CHEMICALENTITY: Between Protein and ChemicalEntity
 PROTEIN_GENE: Between Protein and Gene
 PROTEIN_PROTEIN: Between Protein and Protein
 PROTEIN_TISSUE: Between Protein and Tissue
@@ -118,7 +118,8 @@ PROTEIN_PATHWAY: Between Protein and Pathway
 PROTEIN_BIOLOGICALPROCESS: Between Protein and BiologicalProcess
 PROTEIN_CELLULARCOMPONENT: Between Protein and CellularComponent
 
-
+Species-related Relationships
+Species_AssociatedWith: This relation connects the nodes of the graph with the species those nodes belongs to.
 
 **STRICT Follow-up Response Guidelines**:
 If the user provides or references the unique identifier of an entity (including identifiers mentioned in previous responses), suggest possible relationships for tail prediction based on the entity type.
@@ -136,7 +137,7 @@ Always follow up with suggestions when a valid unique identifier is provided or 
 **STRICT General Guidelines**:
 For `/search_biological_entities` endpoint:
   - Always use this before any other endpoint to fetch general information about the entity.
-  - The user asks for a biological entity by its name, id or mentions a term that might match a Gene, Protein, Anatomy, BiologicalProcess, ChemicalEntity, Disease, Phenotype or Tissue by name name (e.g., "What diseases are related to 'lung'?" or "Show me tissues containing 'lung'").
+  - The user asks for a biological entity by its name, id or mentions a term that might match a Gene, Protein, Disease, ChemicalEntity, Phenotype, Tissue, Anatomy, BiologicalProcess, MolecularFunction, CellularComponent, Pathway, Mutation, PMID, Species or PlantExtract by name name (e.g., "What diseases are related to 'lung'?" or "Show me tissues containing 'lung'").
   - The user query involves partial or fuzzy matching of names.
   - Use this endpoint if the user provides a general or incomplete term, and the exact match is not necessary.
 
@@ -238,7 +239,7 @@ Interaction: Keep responses concise and offer summaries or options for large dat
         label: Annotated[
             str,
             AIParam(
-                desc="The label of the nodes to retrieve (e.g., Gene, Protein, Disease, ChemicalEntity, Phenotype, Tissue, Anatomy, BiologicalProcess, MolecularFunction, CellularComponent, Pathway, Mutation, PMID, PlantExtract)"
+                desc="The label of the nodes to retrieve (e.g., Gene, Protein, Disease, ChemicalEntity, Phenotype, Tissue, Anatomy, BiologicalProcess, MolecularFunction, CellularComponent, Pathway, Mutation, PMID, Species, PlantExtract)"
             ),
         ],
     ) -> List[dict]:
@@ -246,7 +247,7 @@ Interaction: Keep responses concise and offer summaries or options for large dat
         Retrieve 10 nodes of a given type, returning either id or name as available.
 
         Args:
-          label: The label of the nodes to retrieve (e.g., Gene, Protein, Disease, ChemicalEntity, Phenotype, Tissue, Anatomy, BiologicalProcess, MolecularFunction, CellularComponent, Pathway, Mutation, PMID, PlantExtract)
+          label: The label of the nodes to retrieve (e.g., Gene, Protein, Disease, ChemicalEntity, Phenotype, Tissue, Anatomy, BiologicalProcess, MolecularFunction, CellularComponent, Pathway, Mutation, PMID, Species, PlantExtract)
 
         Returns:
           List[dict]: A list of up to 10 nodes with their primary identifiers
@@ -301,7 +302,7 @@ Interaction: Keep responses concise and offer summaries or options for large dat
         ],
     ) -> List[dict]:
         """
-        Search biological entities such as  Gene, Protein, Disease, ChemicalEntity, Phenotype, Tissue, Anatomy, BiologicalProcess, MolecularFunction, CellularComponent, Pathway, Mutation, PMID or PlantExtract by name or id
+        Search biological entities such as  Gene, Protein, Disease, ChemicalEntity, Phenotype, Tissue, Anatomy, BiologicalProcess, MolecularFunction, CellularComponent, Pathway, Mutation, PMID, Species or PlantExtract by name or id
 
         Args:
           targetTerm: The name or id or the term to search for in biological entities
