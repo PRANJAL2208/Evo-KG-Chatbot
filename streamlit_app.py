@@ -1,3 +1,4 @@
+import datetime  # Added for query limit reset logic
 import json
 import logging
 import os
@@ -40,10 +41,64 @@ else:
 API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
 
 
-def register_user(username, email, password):
+def get_user_details(token: str):
+    """Fetches user details from the FastAPI backend."""
+    url = f"{API_BASE_URL}/users/me"  # Assuming this endpoint exists
+    headers = {"Authorization": f"Bearer {token}"}
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return True, response.json()
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Failed to get user details: {e}")
+        error_message = "Failed to fetch user data."
+        if e.response is not None:
+            try:
+                error_detail = e.response.json().get("detail", str(e))
+                error_message = f"Failed to fetch user data: {error_detail}"
+            except json.JSONDecodeError:
+                error_message = f"Failed to fetch user data: {e.response.status_code} - {e.response.reason}"
+        return False, {"error": error_message}
+    except Exception as e:
+        logger.error(f"An unexpected error occurred while fetching user details: {e}")
+        return False, {"error": "An unexpected error occurred."}
+
+
+def update_user_query_limits(token: str, query_limits: int, last_query_reset: str):
+    """Updates user query limits on the FastAPI backend."""
+    url = f"{API_BASE_URL}/users/me/query_limits"  # Assuming this endpoint exists
+    headers = {"Authorization": f"Bearer {token}"}
+    payload = {"query_limits": query_limits, "last_query_reset": last_query_reset}
+    try:
+        response = requests.put(url, headers=headers, json=payload)
+        response.raise_for_status()
+        return True, response.json()
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Failed to update query limits: {e}")
+        error_message = "Failed to update query limits."
+        if e.response is not None:
+            try:
+                error_detail = e.response.json().get("detail", str(e))
+                error_message = f"Failed to update query limits: {error_detail}"
+            except json.JSONDecodeError:
+                error_message = f"Failed to update query limits: {e.response.status_code} - {e.response.reason}"
+        return False, {"error": error_message}
+    except Exception as e:
+        logger.error(f"An unexpected error occurred while updating query limits: {e}")
+        return False, {"error": "An unexpected error occurred."}
+
+
+def register_user(username, email, password, first_name, last_name, organization):
     """Sends signup request to the FastAPI backend."""
     url = f"{API_BASE_URL}/auth/signup"
-    payload = {"username": username, "email": email, "password": password}
+    payload = {
+        "username": username,
+        "email": email,
+        "password": password,
+        "first_name": first_name,
+        "last_name": last_name,
+        "organization": organization,
+    }
     response = None  # Initialize response to None
     try:
         response = requests.post(url, json=payload)
@@ -82,6 +137,32 @@ def login_user(username, password):
         data = response.json()
         # Expecting {'access_token': '...', 'token_type': 'bearer'}
         if "access_token" in data:
+            # Fetch user details after successful login
+            fetch_success, user_details = get_user_details(data["access_token"])
+            if fetch_success:
+                # Store user profile fields
+                st.session_state["query_limits"] = user_details.get("query_limits", 10)
+                st.session_state["last_query_reset"] = user_details.get(
+                    "last_query_reset", datetime.datetime.utcnow().isoformat()
+                )
+                st.session_state["first_name"] = user_details.get("first_name", "")
+                st.session_state["last_name"] = user_details.get("last_name", "")
+                st.session_state["organization"] = user_details.get("organization", "")
+            else:
+                # Handle error or set defaults if fetch fails
+                st.session_state["query_limits"] = 10
+                st.session_state["last_query_reset"] = (
+                    datetime.datetime.utcnow().isoformat()
+                )
+                # Defaults for profile fields
+                st.session_state["first_name"] = ""
+                st.session_state["last_name"] = ""
+                st.session_state["organization"] = ""
+                st.warning(
+                    user_details.get(
+                        "error", "Could not fetch user data, using defaults."
+                    )
+                )
             return True, data
         else:
             return False, {"error": "Login successful, but no token received."}
@@ -238,6 +319,10 @@ if "username" not in st.session_state:
     st.session_state["username"] = None
 if "auth_view" not in st.session_state:
     st.session_state["auth_view"] = "Login"
+if "query_limits" not in st.session_state:  # Ensure query_limits is initialized
+    st.session_state["query_limits"] = 10
+if "last_query_reset" not in st.session_state:
+    st.session_state["last_query_reset"] = datetime.datetime.utcnow().isoformat()
 
 if not st.session_state["logged_in"]:
     col1, col2, col3 = st.columns([0.5, 2, 0.5])
@@ -295,14 +380,29 @@ if not st.session_state["logged_in"]:
                 signup_password = st.text_input(
                     "Password", type="password", key="signup_pass"
                 )
+                signup_first_name = st.text_input("First Name", key="signup_first")
+                signup_last_name = st.text_input("Last Name", key="signup_last")
+                signup_organization = st.text_input("Organization", key="signup_org")
                 signup_button = st.form_submit_button("Sign Up")
 
                 if signup_button:
-                    if not signup_username or not signup_email or not signup_password:
+                    if (
+                        not signup_username
+                        or not signup_email
+                        or not signup_password
+                        or not signup_first_name
+                        or not signup_last_name
+                        or not signup_organization
+                    ):
                         st.error("Please fill in all fields.")
                     else:
                         success, data = register_user(
-                            signup_username, signup_email, signup_password
+                            signup_username,
+                            signup_email,
+                            signup_password,
+                            signup_first_name,
+                            signup_last_name,
+                            signup_organization,
                         )
                         if success:
                             st.success("Registration successful! Please log in.")
@@ -317,6 +417,9 @@ if not st.session_state["logged_in"]:
     st.stop()
 
 elif st.session_state["logged_in"]:
+    # Store the function in session_state so kani_streamlit_server.py can access it
+    st.session_state.update_user_query_limits_func = update_user_query_limits
+
     ks.initialize_app_config(
         show_function_calls=False,
         page_title="EvoLLM",
