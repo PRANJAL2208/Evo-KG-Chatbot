@@ -169,7 +169,7 @@ Interaction: Keep responses concise and offer summaries or options for large dat
 
         * Get details about the disease Stomach Neoplasms.
         * How many nodes are connected to Stomach Neoplasms in EvoKG?
-        * Predict new chemicalentity_disease links for a specific ChemicalEntity.
+        * Predict new CHEMICALENTITY_DISEASE links for a specific ChemicalEntity.
 
         These examples highlight how EvoKG can answer specific queries and assist in predictive biological analysis.
 
