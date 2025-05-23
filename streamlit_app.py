@@ -381,6 +381,20 @@ if not st.session_state["logged_in"]:
                                 )
                             )
 
+            # Add this section for quick test credentials
+            st.markdown("-----")  # Optional: adds a horizontal line for separation
+            test_username = os.getenv("TEST_ACCOUNT_USERNAME", "testuser")
+            test_password = os.getenv("TEST_ACCOUNT_PASSWORD", "testpassword123")
+            st.info(
+                f"""
+                **Quick Test Account:**
+
+                To quickly test the chatbot, you can use the following credentials:
+                - **Username:** `{test_username}`
+                - **Password:** `{test_password}`
+                """
+            )
+
         elif st.session_state["auth_view"] == "Sign Up":
             st.subheader("Sign Up")
             with st.form("signup_form"):
