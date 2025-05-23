@@ -394,6 +394,10 @@ if not st.session_state["logged_in"]:
                 - **Password:** `{test_password}`
                 """
             )
+            st.toast(
+                "Use the test credentials at the bottom of the page to log in quickly!",
+                icon="🚀",
+            )
 
         elif st.session_state["auth_view"] == "Sign Up":
             st.subheader("Sign Up")
