@@ -151,6 +151,7 @@ def login_user(username, password):
                 st.session_state["first_name"] = user_details.get("first_name", "")
                 st.session_state["last_name"] = user_details.get("last_name", "")
                 st.session_state["organization"] = user_details.get("organization", "")
+                st.session_state["openai_api_key"] = user_details.get("OPENAI_API_KEY")
             else:
                 # Handle error or set defaults if fetch fails
                 st.session_state["query_limits"] = 10
@@ -161,6 +162,9 @@ def login_user(username, password):
                 st.session_state["first_name"] = ""
                 st.session_state["last_name"] = ""
                 st.session_state["organization"] = ""
+                st.session_state["openai_api_key"] = (
+                    None  # Ensure API key is None on fetch failure
+                )
                 st.warning(
                     user_details.get(
                         "error", "Could not fetch user data, using defaults."
@@ -326,6 +330,8 @@ if "query_limits" not in st.session_state:  # Ensure query_limits is initialized
     st.session_state["query_limits"] = 10
 if "last_query_reset" not in st.session_state:
     st.session_state["last_query_reset"] = datetime.datetime.utcnow().isoformat()
+if "openai_api_key" not in st.session_state:
+    st.session_state["openai_api_key"] = None
 
 if not st.session_state["logged_in"]:
     col1, col2, col3 = st.columns([0.5, 2, 0.5])
@@ -451,16 +457,28 @@ elif st.session_state["logged_in"]:
             st.session_state["logged_in"] = False
             st.session_state["user_token"] = None
             st.session_state["username"] = None
+            st.session_state["openai_api_key"] = None
             st.session_state["current_page"] = "intro"
             st.rerun()
 
-    engine = OpenAIEngine(os.environ["OPENAI_API_KEY"], model="gpt-4o-mini")
+    user_api_key = st.session_state.get("openai_api_key")
 
-    def get_agents():
-        return {
-            "EvoLLM (4o-mini)": EvoKgAgent(engine),
-        }
+    if user_api_key:
+        engine = OpenAIEngine(user_api_key, model="gpt-4o-mini")
 
-    ks.set_app_agents(get_agents)
+        def get_agents():
+            return {
+                "EvoLLM (4o-mini)": EvoKgAgent(engine),
+            }
 
-    ks.serve_app()
+        ks.set_app_agents(get_agents)
+        ks.serve_app()
+    else:
+        st.error(
+            "OpenAI API key not found for your account. "
+            "Chatbot functionality cannot be initialized. "
+            "Please ensure your API key was correctly submitted during registration and is available in your profile."
+        )
+        # If custom pages should still be accessible, ks.serve_app() might need to be called
+        # outside this if/else, and get_agents() would need to handle the no-key case gracefully.
+        # For now, the main chat app part won't load if the key is missing.
