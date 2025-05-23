@@ -88,7 +88,9 @@ def update_user_query_limits(token: str, query_limits: int, last_query_reset: st
         return False, {"error": "An unexpected error occurred."}
 
 
-def register_user(username, email, password, first_name, last_name, organization):
+def register_user(
+    username, email, password, first_name, last_name, organization, openai_api_key
+):  # Added openai_api_key
     """Sends signup request to the FastAPI backend."""
     url = f"{API_BASE_URL}/auth/signup"
     payload = {
@@ -98,6 +100,7 @@ def register_user(username, email, password, first_name, last_name, organization
         "first_name": first_name,
         "last_name": last_name,
         "organization": organization,
+        "OPENAI_API_KEY": openai_api_key,
     }
     response = None  # Initialize response to None
     try:
@@ -375,45 +378,50 @@ if not st.session_state["logged_in"]:
         elif st.session_state["auth_view"] == "Sign Up":
             st.subheader("Sign Up")
             with st.form("signup_form"):
-                signup_username = st.text_input("Username", key="signup_user")
-                signup_email = st.text_input("Email", key="signup_email")
-                signup_password = st.text_input(
-                    "Password", type="password", key="signup_pass"
+                username = st.text_input("Username")
+                email = st.text_input("Email")
+                password = st.text_input("Password", type="password")
+                first_name = st.text_input("First Name")
+                last_name = st.text_input("Last Name")
+                organization = st.text_input("Organization")
+                openai_api_key = st.text_input("OpenAI API Key", type="password")
+                st.markdown(
+                    "<a href='https://platform.openai.com/account/api-keys' target='_blank'>How to get an API key?</a>",
+                    unsafe_allow_html=True,
                 )
-                signup_first_name = st.text_input("First Name", key="signup_first")
-                signup_last_name = st.text_input("Last Name", key="signup_last")
-                signup_organization = st.text_input("Organization", key="signup_org")
-                signup_button = st.form_submit_button("Sign Up")
-
-                if signup_button:
-                    if (
-                        not signup_username
-                        or not signup_email
-                        or not signup_password
-                        or not signup_first_name
-                        or not signup_last_name
-                        or not signup_organization
+                submitted = st.form_submit_button("Sign Up")
+                if submitted:
+                    if not all(
+                        [
+                            username,
+                            email,
+                            password,
+                            first_name,
+                            last_name,
+                            organization,
+                            openai_api_key,
+                        ]
                     ):
                         st.error("Please fill in all fields.")
                     else:
                         success, data = register_user(
-                            signup_username,
-                            signup_email,
-                            signup_password,
-                            signup_first_name,
-                            signup_last_name,
-                            signup_organization,
+                            username,
+                            email,
+                            password,
+                            first_name,
+                            last_name,
+                            organization,
+                            openai_api_key,
                         )
                         if success:
-                            st.success("Registration successful! Please log in.")
-                            st.session_state["auth_view"] = "Login"
-                            st.rerun()
-                        else:
-                            st.error(
-                                data.get(
-                                    "error", "Registration failed. Please try again."
-                                )
+                            st.success(
+                                "Signup successful! Please login with your new credentials."
                             )
+                            st.session_state["auth_view"] = "Login"
+                            st.rerun()  # Rerun to switch to login view
+                        else:
+                            st.error(data.get("error", "Signup failed."))
+
     st.stop()
 
 elif st.session_state["logged_in"]:
@@ -446,13 +454,11 @@ elif st.session_state["logged_in"]:
             st.session_state["current_page"] = "intro"
             st.rerun()
 
-    engine = OpenAIEngine(os.environ["OPENAI_API_KEY"], model="gpt-4.1-nano")
-    engine2 = OpenAIEngine(os.environ["OPENAI_API_KEY"], model="gpt-4o-mini")
+    engine = OpenAIEngine(os.environ["OPENAI_API_KEY"], model="gpt-4o-mini")
 
     def get_agents():
         return {
-            "EvoLLM (4o-mini)": EvoKgAgent(engine2),
-            "EvoLLM (4.1-nano)": EvoKgAgent(engine),
+            "EvoLLM (4o-mini)": EvoKgAgent(engine),
         }
 
     ks.set_app_agents(get_agents)
