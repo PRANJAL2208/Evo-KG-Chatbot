@@ -45,8 +45,8 @@ CHEMICALENTITY_GENE: Between ChemicalEntity and Gene
 CHEMICALENTITY_PROTEIN: Between ChemicalEntity and Protein
 CHEMICALENTITY_PATHWAY: Between ChemicalEntity and Pathway
 CHEMICALENTITY_BIOLOGICALPROCESS: Between ChemicalEntity and BiologicalProcess
-CHEMICALENTITY_INHIBITS_BIOLOGICALPROCESS: Between ChemicalEntity and BiologicalProcess
-CHEMICALENTITY_PROMOTES_BIOLOGICALPROCESS: Between ChemicalEntity and BiologicalProcess
+CHEMICALENTITY_INHIBITS_BIOLOGICALPROCESS: Between ChemicalEntity that Inhibits BiologicalProcess
+CHEMICALENTITY_PROMOTES_BIOLOGICALPROCESS: Between ChemicalEntity that Promotes BiologicalProcess
 CHEMICALENTITY_MUTATION: Between ChemicalEntity and Mutation
 CHEMICALENTITY_TISSUE: Between ChemicalEntity and Tissue
 
@@ -71,9 +71,9 @@ GENE_BIOLOGICALPROCESS: Between Gene and BiologicalProcess
 GENE_CELLULARCOMPONENT: Between Gene and CellularComponents
 GENE_PATHWAY: Between Gene and Pathway
 GENE_MOLECULARFUNCTION: Between Gene and MolecularFunction
-GENE_INHIBITS_BIOLOGICALPROCESS: Between Gene and BiologicalProcess
-GENE_NOEFFECT_BIOLOGICALPROCESS: Between Gene and BiologicalProcess
-GENE_PROMOTES_BIOLOGICALPROCESS: Between Gene and BiologicalProcess
+GENE_INHIBITS_BIOLOGICALPROCESS: Between Gene that Inhibits BiologicalProcess
+GENE_NOEFFECT_BIOLOGICALPROCESS: Between Gene that Does Not Affect BiologicalProcess
+GENE_PROMOTES_BIOLOGICALPROCESS: Between Gene that Promotes BiologicalProcess
 
 Molecular Function-related Relationships
 MOLECULARFUNCTION_MOLECULARFUNCTION: Between MolecularFunction and MolecularFunction
@@ -185,7 +185,7 @@ Interaction: Keep responses concise and offer summaries or options for large dat
         self.api_base = API_BASE_URL
 
     # helper function to make API calls
-    def api_call(self, endpoint, timeout=30, **kwargs):
+    def api_call(self, endpoint, timeout=60, **kwargs):
         url = f"{self.api_base}/{endpoint}"
         logging.info(f"############ api_call: url={url}, kwargs={kwargs}")
         response = requests.get(url, params=kwargs, timeout=timeout)
