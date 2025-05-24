@@ -88,7 +88,9 @@ def update_user_query_limits(token: str, query_limits: int, last_query_reset: st
         return False, {"error": "An unexpected error occurred."}
 
 
-def register_user(username, email, password, first_name, last_name, organization):
+def register_user(
+    username, email, password, first_name, last_name, organization, openai_api_key
+):  # Added openai_api_key
     """Sends signup request to the FastAPI backend."""
     url = f"{API_BASE_URL}/auth/signup"
     payload = {
@@ -98,6 +100,7 @@ def register_user(username, email, password, first_name, last_name, organization
         "first_name": first_name,
         "last_name": last_name,
         "organization": organization,
+        "OPENAI_API_KEY": openai_api_key,
     }
     response = None  # Initialize response to None
     try:
@@ -148,6 +151,7 @@ def login_user(username, password):
                 st.session_state["first_name"] = user_details.get("first_name", "")
                 st.session_state["last_name"] = user_details.get("last_name", "")
                 st.session_state["organization"] = user_details.get("organization", "")
+                st.session_state["openai_api_key"] = user_details.get("OPENAI_API_KEY")
             else:
                 # Handle error or set defaults if fetch fails
                 st.session_state["query_limits"] = 10
@@ -158,6 +162,9 @@ def login_user(username, password):
                 st.session_state["first_name"] = ""
                 st.session_state["last_name"] = ""
                 st.session_state["organization"] = ""
+                st.session_state["openai_api_key"] = (
+                    None  # Ensure API key is None on fetch failure
+                )
                 st.warning(
                     user_details.get(
                         "error", "Could not fetch user data, using defaults."
@@ -323,6 +330,8 @@ if "query_limits" not in st.session_state:  # Ensure query_limits is initialized
     st.session_state["query_limits"] = 10
 if "last_query_reset" not in st.session_state:
     st.session_state["last_query_reset"] = datetime.datetime.utcnow().isoformat()
+if "openai_api_key" not in st.session_state:
+    st.session_state["openai_api_key"] = None
 
 if not st.session_state["logged_in"]:
     col1, col2, col3 = st.columns([0.5, 2, 0.5])
@@ -372,48 +381,71 @@ if not st.session_state["logged_in"]:
                                 )
                             )
 
+            # Add this section for quick test credentials
+            st.markdown("-----")  # Optional: adds a horizontal line for separation
+            test_username = os.getenv("TEST_ACCOUNT_USERNAME", "testuser")
+            test_password = os.getenv("TEST_ACCOUNT_PASSWORD", "testpassword123")
+            st.info(
+                f"""
+                **Quick Test Account:**
+
+                To quickly test the chatbot, you can use the following credentials:
+                - **Username:** `{test_username}`
+                - **Password:** `{test_password}`
+                """
+            )
+            st.toast(
+                "Use the test credentials at the bottom of the page to log in quickly!",
+                icon="🚀",
+            )
+
         elif st.session_state["auth_view"] == "Sign Up":
             st.subheader("Sign Up")
             with st.form("signup_form"):
-                signup_username = st.text_input("Username", key="signup_user")
-                signup_email = st.text_input("Email", key="signup_email")
-                signup_password = st.text_input(
-                    "Password", type="password", key="signup_pass"
+                username = st.text_input("Username")
+                email = st.text_input("Email")
+                password = st.text_input("Password", type="password")
+                first_name = st.text_input("First Name")
+                last_name = st.text_input("Last Name")
+                organization = st.text_input("Organization")
+                openai_api_key = st.text_input("OpenAI API Key", type="password")
+                st.markdown(
+                    "<a href='https://platform.openai.com/account/api-keys' target='_blank'>How to get an API key?</a>",
+                    unsafe_allow_html=True,
                 )
-                signup_first_name = st.text_input("First Name", key="signup_first")
-                signup_last_name = st.text_input("Last Name", key="signup_last")
-                signup_organization = st.text_input("Organization", key="signup_org")
-                signup_button = st.form_submit_button("Sign Up")
-
-                if signup_button:
-                    if (
-                        not signup_username
-                        or not signup_email
-                        or not signup_password
-                        or not signup_first_name
-                        or not signup_last_name
-                        or not signup_organization
+                submitted = st.form_submit_button("Sign Up")
+                if submitted:
+                    if not all(
+                        [
+                            username,
+                            email,
+                            password,
+                            first_name,
+                            last_name,
+                            organization,
+                            openai_api_key,
+                        ]
                     ):
                         st.error("Please fill in all fields.")
                     else:
                         success, data = register_user(
-                            signup_username,
-                            signup_email,
-                            signup_password,
-                            signup_first_name,
-                            signup_last_name,
-                            signup_organization,
+                            username,
+                            email,
+                            password,
+                            first_name,
+                            last_name,
+                            organization,
+                            openai_api_key,
                         )
                         if success:
-                            st.success("Registration successful! Please log in.")
-                            st.session_state["auth_view"] = "Login"
-                            st.rerun()
-                        else:
-                            st.error(
-                                data.get(
-                                    "error", "Registration failed. Please try again."
-                                )
+                            st.success(
+                                "Signup successful! Please login with your new credentials."
                             )
+                            st.session_state["auth_view"] = "Login"
+                            st.rerun()  # Rerun to switch to login view
+                        else:
+                            st.error(data.get("error", "Signup failed."))
+
     st.stop()
 
 elif st.session_state["logged_in"]:
@@ -443,18 +475,28 @@ elif st.session_state["logged_in"]:
             st.session_state["logged_in"] = False
             st.session_state["user_token"] = None
             st.session_state["username"] = None
+            st.session_state["openai_api_key"] = None
             st.session_state["current_page"] = "intro"
             st.rerun()
 
-    engine = OpenAIEngine(os.environ["OPENAI_API_KEY"], model="gpt-4.1-nano")
-    engine2 = OpenAIEngine(os.environ["OPENAI_API_KEY"], model="gpt-4o-mini")
+    user_api_key = st.session_state.get("openai_api_key")
 
-    def get_agents():
-        return {
-            "EvoLLM (4o-mini)": EvoKgAgent(engine2),
-            "EvoLLM (4.1-nano)": EvoKgAgent(engine),
-        }
+    if user_api_key:
+        engine = OpenAIEngine(user_api_key, model="gpt-4o-mini")
 
-    ks.set_app_agents(get_agents)
+        def get_agents():
+            return {
+                "EvoLLM (4o-mini)": EvoKgAgent(engine),
+            }
 
-    ks.serve_app()
+        ks.set_app_agents(get_agents)
+        ks.serve_app()
+    else:
+        st.error(
+            "OpenAI API key not found for your account. "
+            "Chatbot functionality cannot be initialized. "
+            "Please ensure your API key was correctly submitted during registration and is available in your profile."
+        )
+        # If custom pages should still be accessible, ks.serve_app() might need to be called
+        # outside this if/else, and get_agents() would need to handle the no-key case gracefully.
+        # For now, the main chat app part won't load if the key is missing.
