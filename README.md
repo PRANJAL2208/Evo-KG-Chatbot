@@ -47,12 +47,7 @@ An AI chatbot designed to answer queries about the EvoKG knowledge graph using O
 
 4.  **Set up environment variables:**
 
-    Create a `.env` file in the root directory (`Evo-KG-Chatbot/`) and add your OpenAI API key:
-
-    ```env
-    # .env
-    OPENAI_API_KEY="sk-..."
-    ```
+    Create a `.env` file in the root directory (`Evo-KG-Chatbot/`).
 
     *Optional: For chat sharing functionality via Upstash Redis:*
     ```env
