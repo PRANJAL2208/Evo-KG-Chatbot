@@ -1,4 +1,4 @@
-import datetime  # Added for query limit reset logic
+import datetime
 import json
 import logging
 import os
@@ -48,20 +48,22 @@ def get_user_details(token: str):
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
-        return True, response.json()
+        return response.json()  # Return the JSON data
     except requests.exceptions.RequestException as e:
         logger.error(f"Failed to get user details: {e}")
         error_message = "Failed to fetch user data."
         if e.response is not None:
             try:
                 error_detail = e.response.json().get("detail", str(e))
-                error_message = f"Failed to fetch user data: {error_detail}"
-            except json.JSONDecodeError:
-                error_message = f"Failed to fetch user data: {e.response.status_code} - {e.response.reason}"
-        return False, {"error": error_message}
+                error_message += f" Server said: {error_detail}"
+            except ValueError:  # If response is not JSON
+                error_message += f" Server response: {e.response.text}"
+        st.error(error_message)  # Optionally show error to user
+        return None
     except Exception as e:
         logger.error(f"An unexpected error occurred while fetching user details: {e}")
-        return False, {"error": "An unexpected error occurred."}
+        st.error("An unexpected error occurred while fetching user details.")
+        return None
 
 
 def update_user_query_limits(token: str, query_limits: int, last_query_reset: str):
@@ -72,20 +74,83 @@ def update_user_query_limits(token: str, query_limits: int, last_query_reset: st
     try:
         response = requests.put(url, headers=headers, json=payload)
         response.raise_for_status()
-        return True, response.json()
+        logger.info("Query limits updated successfully.")
+        return response.json()
     except requests.exceptions.RequestException as e:
         logger.error(f"Failed to update query limits: {e}")
         error_message = "Failed to update query limits."
         if e.response is not None:
             try:
                 error_detail = e.response.json().get("detail", str(e))
-                error_message = f"Failed to update query limits: {error_detail}"
-            except json.JSONDecodeError:
-                error_message = f"Failed to update query limits: {e.response.status_code} - {e.response.reason}"
-        return False, {"error": error_message}
+                error_message += f" Server said: {error_detail}"
+            except ValueError:
+                error_message += f" Server response: {e.response.text}"
+        st.error(error_message)
+        return None
     except Exception as e:
         logger.error(f"An unexpected error occurred while updating query limits: {e}")
-        return False, {"error": "An unexpected error occurred."}
+        st.error("An unexpected error occurred while updating query limits.")
+        return None
+
+
+def update_user_openai_key_api(token: str, new_api_key: str):
+    """Updates the user's OpenAI API key on the FastAPI backend after validating it using the backend endpoint."""
+    # Step 1: Validate the new API key using the backend endpoint
+    validation_url = f"{API_BASE_URL}/utils/validate_openai_key"
+    try:
+        validation_response = requests.post(
+            validation_url, json={"api_key": new_api_key}
+        )
+        validation_response.raise_for_status()  # Raise an exception for bad status codes
+        validation_data = validation_response.json()
+        if not validation_data.get("is_valid"):
+            logger.error("Invalid OpenAI API key according to backend validation.")
+            return (
+                False,
+                "The provided OpenAI API key is invalid. Please check the key and try again.",
+            )
+        logger.info("OpenAI API key validated successfully by backend.")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"API key validation request failed: {e}")
+        error_message = "Failed to validate OpenAI API key."
+        if e.response is not None:
+            try:
+                error_detail = e.response.json().get("detail", str(e))
+                error_message += f" Server said: {error_detail}"
+            except ValueError:
+                error_message += f" Server response: {e.response.text}"
+        return False, error_message
+    except Exception as e:  # Catch any other unexpected errors during validation call
+        logger.error(f"An unexpected error occurred during API key validation: {e}")
+        return False, "An unexpected error occurred while validating the API key."
+
+    # Step 2: If validated, proceed to update the key
+    update_url = f"{API_BASE_URL}/users/me/openai_api_key"
+    headers = {"Authorization": f"Bearer {token}"}
+    payload = {"OPENAI_API_KEY": new_api_key}
+    try:
+        response = requests.put(update_url, headers=headers, json=payload)
+        response.raise_for_status()
+        logger.info("OpenAI API key updated successfully via API.")
+        return (
+            True,
+            "OpenAI API key updated successfully. Please log out and log back in for the changes to take effect.",
+        )
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Failed to update OpenAI API key via API: {e}")
+        error_message = "Failed to update OpenAI API key."
+        if e.response is not None:
+            try:
+                error_detail = e.response.json().get("detail", str(e))
+                error_message += f" Server said: {error_detail}"
+            except ValueError:  # If response is not JSON
+                error_message += f" Server response: {e.response.text}"
+        return False, error_message
+    except Exception as e:
+        logger.error(
+            f"An unexpected error occurred while updating OpenAI API key via API: {e}"
+        )
+        return False, f"An unexpected error occurred: {str(e)}"
 
 
 def register_user(
@@ -140,37 +205,24 @@ def login_user(username, password):
         data = response.json()
         # Expecting {'access_token': '...', 'token_type': 'bearer'}
         if "access_token" in data:
-            # Fetch user details after successful login
-            fetch_success, user_details = get_user_details(data["access_token"])
-            if fetch_success:
-                # Store user profile fields
+            st.session_state["logged_in"] = True
+            st.session_state["user_token"] = data["access_token"]
+            st.session_state["username"] = username
+
+            # Fetch user details to get other info like API key, query limits
+            user_details = get_user_details(data["access_token"])
+            if user_details:
                 st.session_state["query_limits"] = user_details.get("query_limits", 10)
                 st.session_state["last_query_reset"] = user_details.get(
                     "last_query_reset", datetime.datetime.utcnow().isoformat()
                 )
-                st.session_state["first_name"] = user_details.get("first_name", "")
-                st.session_state["last_name"] = user_details.get("last_name", "")
-                st.session_state["organization"] = user_details.get("organization", "")
+                # Ensure this key matches the field name in your UserPublic model from FastAPI
                 st.session_state["openai_api_key"] = user_details.get("OPENAI_API_KEY")
-            else:
-                # Handle error or set defaults if fetch fails
-                st.session_state["query_limits"] = 10
-                st.session_state["last_query_reset"] = (
-                    datetime.datetime.utcnow().isoformat()
+                logger.info(
+                    f"User details fetched on login: OpenAI API Key presence: {'present' if user_details.get('OPENAI_API_KEY') else 'absent'}"
                 )
-                # Defaults for profile fields
-                st.session_state["first_name"] = ""
-                st.session_state["last_name"] = ""
-                st.session_state["organization"] = ""
-                st.session_state["openai_api_key"] = (
-                    None  # Ensure API key is None on fetch failure
-                )
-                st.warning(
-                    user_details.get(
-                        "error", "Could not fetch user data, using defaults."
-                    )
-                )
-            return True, data
+
+            st.rerun()
         else:
             return False, {"error": "Login successful, but no token received."}
     except requests.exceptions.RequestException as e:
@@ -478,6 +530,34 @@ elif st.session_state["logged_in"]:
             st.session_state["openai_api_key"] = None
             st.session_state["current_page"] = "intro"
             st.rerun()
+
+        st.sidebar.markdown("---")
+        st.sidebar.subheader("Update OpenAI API Key")
+        new_openai_key_input = st.sidebar.text_input(
+            "New OpenAI API Key", type="password", key="new_openai_key_input_field"
+        )
+        if st.sidebar.button("Update Key", key="update_openai_key_button_field"):
+            if new_openai_key_input:
+                if st.session_state.get("user_token"):
+                    success, message = update_user_openai_key_api(
+                        st.session_state["user_token"], new_openai_key_input
+                    )
+                    if success:
+                        st.toast(message, icon="✅")
+                        # Clear the input field after successful submission
+                        # Note: Direct manipulation of widget state like this can be tricky.
+                        # Streamlit's execution model might rerun and reset it.
+                        # However, for a password field, clearing it is good practice.
+                        # A more robust way might involve session_state keys if direct clearing is problematic.
+                        # For now, let's try to clear it. If it doesn't work reliably,
+                        # the re-login will make it less of an issue.
+                        # st.session_state.new_openai_key_input_field = "" # This might not work as expected
+                    else:
+                        st.toast(message, icon="❌")
+                else:
+                    st.toast("User token not found. Please log in again.", icon="⚠️")
+            else:
+                st.toast("Please enter an API key.", icon="⚠️")
 
     user_api_key = st.session_state.get("openai_api_key")
 
