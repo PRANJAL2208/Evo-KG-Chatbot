@@ -271,21 +271,29 @@ Interaction: Keep responses concise and offer summaries or options for large dat
         property_value: Annotated[
             str, AIParam(desc="Value of the property to search for")
         ],
+        node_label: Annotated[
+            str,
+            AIParam(desc="Label of the start node to search for (e.g., Gene, Protein)"),
+        ],
     ) -> dict:
         """
         Retrieve a subgraph of related nodes by specifying the property and value of the start node
 
         Args:
-          property_name: Property name of the start node to search for
-          property_value: Value of the property to search for
+            property_name: Property name of the start node to search for (e.g., name, id)
+            property_value: Value of the property to search for
+            node_label: Label of the start node to search for (e.g., Gene, Protein)
 
         Returns:
-          dict: A subgraph of nodes related to the specified node
+            dict: A subgraph of nodes related to the specified node
         """
         try:
-            response = self.api_call(
-                "subgraph", property_name=property_name, property_value=property_value
-            )
+            params = {
+                "property_name": property_name,
+                "property_value": property_value,
+                "node_label": node_label,
+            }
+            response = self.api_call("subgraph", **params)
             return response
         except Exception as e:
             logging.error(f"Error calling subgraph endpoint: {str(e)}")
