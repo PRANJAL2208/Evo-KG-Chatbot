@@ -75,7 +75,7 @@ def update_user_query_limits(token: str, query_limits: int, last_query_reset: st
         response = requests.put(url, headers=headers, json=payload)
         response.raise_for_status()
         logger.info("Query limits updated successfully.")
-        return response.json()
+        return True, response.json()
     except requests.exceptions.RequestException as e:
         logger.error(f"Failed to update query limits: {e}")
         error_message = "Failed to update query limits."
@@ -83,14 +83,16 @@ def update_user_query_limits(token: str, query_limits: int, last_query_reset: st
             try:
                 error_detail = e.response.json().get("detail", str(e))
                 error_message += f" Server said: {error_detail}"
-            except ValueError:
+            except ValueError:  # Handles cases where e.response.json() fails
                 error_message += f" Server response: {e.response.text}"
-        st.error(error_message)
-        return None
+        # st.error(error_message) # Removed: Caller will handle UI feedback
+        return False, {"error": error_message}
     except Exception as e:
         logger.error(f"An unexpected error occurred while updating query limits: {e}")
-        st.error("An unexpected error occurred while updating query limits.")
-        return None
+        # st.error("An unexpected error occurred while updating query limits.") # Removed: Caller will handle UI feedback
+        return False, {
+            "error": "An unexpected error occurred while updating query limits."
+        }
 
 
 def update_user_openai_key_api(token: str, new_api_key: str):
@@ -563,10 +565,12 @@ elif st.session_state["logged_in"]:
 
     if user_api_key:
         engine = OpenAIEngine(user_api_key, model="gpt-4o-mini")
+        engine2 = OpenAIEngine(user_api_key, model="gpt-4.1-mini")
 
         def get_agents():
             return {
                 "EvoLLM (4o-mini)": EvoKgAgent(engine),
+                "EvoLLM (4.1-mini)": EvoKgAgent(engine2),
             }
 
         ks.set_app_agents(get_agents)
