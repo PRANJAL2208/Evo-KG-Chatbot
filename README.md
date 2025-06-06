@@ -47,13 +47,30 @@ An AI chatbot designed to answer queries about the EvoKG knowledge graph using O
 
 4.  **Set up environment variables:**
 
-    Create a `.env` file in the root directory (`Evo-KG-Chatbot/`).
+    Create a `.env` file in the root directory (`Evo-KG-Chatbot/`). You can do this by copying the example file:
+    ```bash
+    cp .env.example .env
+    ```
+    Then, edit the `.env` file to include your actual credentials. The `.env.example` file should contain placeholders for the following variables:
 
-    *Optional: For chat sharing functionality via Upstash Redis:*
     ```env
+    # Base URL for the API used by the chatbot
+    # API_BASE_URL="your_api_base_url_here"
+
+    # Optional: For chat sharing functionality via Upstash Redis:
     # UPSTASH_REDIS_REST_URL="https://..."
     # UPSTASH_REDIS_REST_TOKEN="..."
+
+    # Placeholder test user credentials for trying out the chatbot
+    # These are NOT actual production credentials.
+    # The administrator deploying the chatbot should replace these
+    # with appropriate credentials if a test login is desired.
+    # TEST_USER_USERNAME="testuser"
+    # TEST_USER_PASSWORD="testpassword"
     ```
+    Make sure to replace `"your_api_base_url_here"` with the actual URI for the API.
+    If you intend to provide a test login, replace the placeholder `testuser` and `testpassword`
+    with the desired credentials.
 
 ## How to Run
 
