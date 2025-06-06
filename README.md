@@ -55,7 +55,7 @@ An AI chatbot designed to answer queries about the EvoKG knowledge graph using O
 
     ```env
     # Base URL for the API used by the chatbot
-    # API_BASE_URL="your_api_base_url_here"
+    API_BASE_URL="your_api_base_url_here"
 
     # Optional: For chat sharing functionality via Upstash Redis:
     # UPSTASH_REDIS_REST_URL="https://..."
@@ -65,8 +65,8 @@ An AI chatbot designed to answer queries about the EvoKG knowledge graph using O
     # These are NOT actual production credentials.
     # The administrator deploying the chatbot should replace these
     # with appropriate credentials if a test login is desired.
-    # TEST_USER_USERNAME="testuser"
-    # TEST_USER_PASSWORD="testpassword"
+    TEST_USER_USERNAME="testuser"
+    TEST_USER_PASSWORD="testpassword"
     ```
     Make sure to replace `"your_api_base_url_here"` with the actual URI for the API.
     If you intend to provide a test login, replace the placeholder `testuser` and `testpassword`
